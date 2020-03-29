@@ -1,0 +1,963 @@
+
+
+1  PostgreSQL 数据库
+
+
+(1)介绍:
+PostgreSQL是一个功能强大的开源对象关系数据库管理系统(ORDBMS)。 用于安全地存储数据; 支持最佳做法，并允许在处理请求时检索它们
+
+
+(2)PostgreSQL的特点如下 :
+
+PostgreSQL可在所有主要操作系统(即Linux，UNIX(AIX，BSD，HP-UX，SGI IRIX，Mac OS X，Solaris，Tru64)和Windows等)上运行。
+PostgreSQL支持文本，图像，声音和视频，并包括用于C/C++，Java，Perl，Python，Ruby，Tcl和开放数据库连接(ODBC)的编程接口。
+PostgreSQL支持SQL的许多功能，例如复杂SQL查询，SQL子选择，外键，触发器，视图，事务，多进程并发控制(MVCC)，流式复制(9.0)，热备(9.0))。
+在PostgreSQL中，表可以设置为从“父”表继承其特征。
+可以安装多个扩展以向PostgreSQL添加附加功能。
+
+
+(3)PostgreSQL主要有三种类型的数据类型和一些其他的数据类型
+
+. 数值数据类型
+  (smallint  int  bigint  decimal  double ...)
+. 字符串数据类型
+  (char  varchar  character  text...)
+. 日期/时间数据类型
+  (timestamp  date  time ...)
+
+其他数据类型
+
+boolean(布尔型)  money(货币性)  几何形(point line  box  path   circle) ...
+
+
+(4) 安装postgresql(ubuntu 系统)
+
+. sudo apt update (更新系统)
+. sudo apt install postgresql postgresql-contrib
+. 创建新角色  sudo -u postgres createuser --interactive --- 输入用户名并同意为超级管理员
+. 并将这个用户添加到系统的组中  --- sudo adduser devotion ---一次同意即可
+. 创建新数据库  ---  sudo -u postgres createdb 数据库名
+. 以新的角色打开postgres  ---- sudo -u 角色名 psql --- 如果提示该角色没在sudoers文件中 --- vim /etc/sudoers
+. 直接改里面的角色 ALL  wq! 强制保存即可
+
+
+
+
+postgresql ---  sql语句汇总
+
+1  create database 数据库名 ;
+
+2  查看已创建的所有数据库 \l 
+
+3  删除数据库  drop database 数据库名 ;  
+(注意 当数据库角色owner = postgres时可以删除其他owner≠postgres的数据库, 
+ 如果数据库角色owner≠postgres, 那么只能删除与这个角色相关的数据库)
+
+
+4 \c database_name  --- 切换数据库 
+例如:
+
+devotion=# \c postgres 
+You are now connected to database "postgres" as user "devotion".
+postgres=# 
+
+postgres=# \c devotion 
+You are now connected to database "devotion" as user "devotion".
+devotion=#
+
+5 \d 查看当前数据库的所有表 
+
+6 \d tablename  --- 查看当前表结构信息
+
+
+7  创建表 
+
+CREATE TABLE public.student2
+(
+  id integer NOT NULL,
+  name character(100),
+  subjects character(1),
+  CONSTRAINT student2_pkey PRIMARY KEY (id)
+)
+WITH (
+  OIDS=FALSE
+) ;
+
+
+8 删除表
+
+必须保证当前数据库有这张表
+drop table table_name ;
+
+
+9 创建架构schema  
+
+优点:
+
+模式有助于多用户使用一个数据库，而不会互相干扰。
+每个架构的关系的独立的,要想在操作架构中的表必须先进入架构中
+它将数据库对象组织成逻辑组，使其更易于管理。
+
+(1) 创建架构 
+
+create schema (架构名)
+
+(2) 创建表
+
+create schema_name.table(
+
+...
+...
+) ;
+
+
+这样这个表就只会单独存在这个架构中, 外面\d 无法获取, 要想看到这张表信息 \d  schema_name.table_name 
+
+
+获取数据库中所有已创建的架构组 --- select * from information_schema.schemata;
+
+
+(3) 删除 schema
+
+drop schema schema_name CASCADE ;
+
+CASCADE 表示级联删除, 如果不加CASCADE ,则无法删除架构组, 因为这个架构包含至少一张表.
+
+
+postgresql 基本的增删改查
+
+
+10 插入数据
+
+insert into  table_name (column1 ,column2 ....) values ( value1 ,value2 ...) ;
+
+注意 字段要和值一一对应起来
+
+11 查询数据
+
+SELECT "column1", "column2".."column" FROM "table_name";  或者
+
+SELECT * FROM "table_name";
+
+
+12 修改数据
+
+update table_name set column1= values1, column2=values2... where  id=values1 ;
+
+
+13 删除数据
+
+delete from table_name where  condition1 ...;
+
+
+14 数据排序
+
+select * from table_name order by colum1(A/D), colum2(A/D);
+
+
+
+15 数据分组  
+
+表中有些数据为重复数据,所以需要分组 group by (column1, column2....)
+
+select name , sum(salary) from employees group by name; ---按名字进行分组
+
+
+having语句与 group by 组合使用 --- 意思为分组后的条件筛选
+例如:查询名字数量大于1的姓名
+
+select name ,count(name) from heros group by name having count(name) > 1;
+
+与mysql基本一致的就不写了....
+
+
+连表查询也跟mysql 一致  内连接查询表示把两张表字段的相同值连接在一起查, 并不是代表两张表有什么关系
+
+SELECT table1.columns, table2.columns  
+FROM table1  
+INNER JOIN table2  
+ON table1.common_filed = table2.common_field;
+
+
+
+postgresql  视图  
+说明: 在PostgreSQL中，视图(VIEW)是一个临时表。 它不是物理表，而是作为普通表选择查询。视图也可以表示连接的表。 它可以包含表的所有行或来自一个或多个表的所选行.
+
+
+创建视图: 
+
+create  view  view_name  AS
+
+select column1 ,column2 ... from table_name  where condition ;
+
+查询视图: 
+
+select * from view_name ;
+
+删除视图
+
+drop view  view_name;
+
+
+postgresql  函数
+
+说明:  PostgreSQL函数或存储过程是存储在数据库服务器上并可以使用SQL界面调用的一组SQL和过程语句(声明，分配，循环，控制流程等)。 它有助于您执行通常在数据库中的单个函数中进行多次查询和往返操作的操作。
+
+
+实例:
+创建函数
+CREATE OR REPLACE FUNCTION totalRecords ()  ---函数名
+RETURNS integer AS $total$   返回整数类型作为total
+declare  
+    total integer;   声明 total为 integer
+BEGIN  
+   SELECT count(*) into total FROM EMPLOYEES;  
+   RETURN total;    函数体 ,只返回total字段
+END;  
+$total$ LANGUAGE plpgsql;
+
+
+调用函数
+
+select totalRecords();
+
+
+
+
+
+postgresql  触发器
+
+
+
+说明:
+PostgreSQL触发器是一组动作或数据库回调函数，它们在指定的表上执行指定的数据库事件
+(即，INSERT，UPDATE，DELETE或TRUNCATE语句)时自动运行。 触发器用于验证输入数据，执行业务规则，保持审计跟踪等.
+
+
+
+重点说明:
+
+
+1. PostgreSQL在以下情况下执行/调用触发器：在尝试操作之前(在检查约束并尝试INSERT，UPDATE或DELETE之前)。或者在操作完成后(在检查约束并且INSERT，UPDATE或DELETE完成后)。或者不是操作(在视图中INSERT，UPDATE或DELETE的情况下)
+
+2. 对于操作修改的每一行，都会调用一个标记为FOR EACH ROWS的触发器。 另一方面，标记为FOR EACH STATEMENT的触发器只对任何给定的操作执行一次，而不管它修改多少行。
+
+3. 您可以为同一事件定义同一类型的多个触发器，但条件是按名称按字母顺序触发。
+
+4. 当与它们相关联的表被删除时，触发器被自动删除.
+
+
+代码详见: https://www.yiibai.com/postgresql/postgresql-trigger.html
+
+
+
+postgresql  索引
+
+说明:
+索引是用于加速从数据库检索数据的特殊查找表。数据库索引类似于书的索引(目录)。 
+索引为出现在索引列中的每个值创建一个条目
+
+
+数据库索引重要特点:
+1. 索引使用SELECT查询和WHERE子句加速数据输出，但是会减慢使用INSERT和UPDATE语句输入的数据。
+2. 您可以在不影响数据的情况下创建或删除索引。
+3. 可以通过使用CREATE INDEX语句创建索引，指定创建索引的索引名称和表或列名称。
+4. 还可以创建一个唯一索引，类似于唯一约束，该索引防止列或列的组合上有一个索引重复的项
+
+
+语法: 
+
+create  index  index_name on table_name(colnum_name) --创建单列索引
+
+
+create  index  index_name on table_name(colnum_name1, colnum_name2 ..) --创建多列索引
+
+
+
+CREATE UNIQUE INDEX index_name on table_name (column_name); --- 创建唯一索引
+
+
+删除索引  drop index index_name;
+
+
+
+什么时候避免索引
+
+1. 应该避免在小表上使用索引。
+2. 不要为具有频繁，大批量更新或插入操作的表创建索引。
+3. 索引不应用于包含大量NULL值的列。
+4. 不要在经常操作(修改)的列上创建索引。
+
+
+postgresql  时间和日期函数
+
+详见: https://www.yiibai.com/postgresql/postgresql-date-time.html
+
+
+
+
+alter table 的用处
+
+PostgreSQL ALTER TABLE命令用于添加，删除或修改现有表中的列。
+您还可以使用ALTER TABLE命令在现有表上添加和删除各种约束
+
+
+(1)在表中添加新列
+ALTER TABLE table_name ADD column_name datatype;
+
+(2)现有表中ALTER TABLE到DROP COLUMN(删除某个字段)的基本语法如下：
+ALTER TABLE table_name DROP COLUMN column_name;
+
+(3)ALTER TABLE更改表中列的DATA TYPE(修改字段类型)的基本语法如下：
+ALTER TABLE table_name ALTER COLUMN column_name TYPE datatype;
+
+(4)ALTER TABLE向表中的列添加NOT NULL约束的基本语法如下：
+ALTER TABLE table_name MODIFY column_name datatype NOT NULL;
+
+(5)ALTER TABLE添加唯一约束ADD UNIQUE CONSTRAINT到表中的基本语法如下：
+ALTER TABLE table_name
+ADD CONSTRAINT MyUniqueConstraint UNIQUE(column1, column2...);
+
+(6)ALTER TABLE将“检查约束”添加到表中的基本语法如下所示：
+ALTER TABLE table_name
+ADD CONSTRAINT MyUniqueConstraint CHECK (CONDITION);
+
+(7)ALTER TABLE添加主键ADD PRIMARY KEY约束的基本语法如下：
+ALTER TABLE table_name
+ADD CONSTRAINT MyPrimaryKey PRIMARY KEY (column1, column2...);
+
+(8)使用ALTER TABLE从表中删除约束(DROP CONSTRAINT)的基本语法如下：
+ALTER TABLE table_name
+DROP CONSTRAINT MyUniqueConstraint;
+
+(9)使用ALTER TABLE从表中删除主键约束(DROP PRIMARY KEY)约束的基本语法如下：
+ALTER TABLE table_name
+DROP CONSTRAINT MyPrimaryKey;
+
+
+
+PostgreSQL TRUNCATE TABLE命令用于从现有表中删除完整的数据。
+您也可以使用DROP TABLE命令删除完整的表，但会从数据库中删除完整的表结构，
+如果希望存储某些数据，则需要重新创建此表。
+
+
+语法:
+
+TRUNCATE TABLE  table_name;
+
+
+
+
+postgresql  事务性质 ACID
+
+原子性(Atomicity)：确保工作单位内的所有操作成功完成; 否则事务将在故障点中止，以前的操作回滚到其以前的状态。
+一致性(Consistency)：确保数据库在成功提交的事务时正确更改状态。
+隔离性(Isolation)：使事务能够独立运作并相互透明。
+持久性(Durability)：确保在系统发生故障的情况下，提交的事务的结果或效果仍然存在
+
+
+BEGIN TRANSACTION：开始事务。
+COMMIT：保存更改，或者您可以使用END TRANSACTION命令。
+ROLLBACK：回滚更改
+
+
+例子:
+yiibai_db=# BEGIN;
+DELETE FROM COMPANY WHERE AGE = 25;
+COMMIT;
+ROLLBACK;
+
+
+
+postgresql  锁
+
+
+说明:
+锁或独占锁或写锁阻止用户修改行或整个表。 在UPDATE和DELETE修改的行在事务的持续时间内被自动独占锁定。 这将阻止其他用户更改行，直到事务被提交或回退.
+
+数据库自动执行锁定。 然而，在某些情况下，必须手动控制锁定。 手动锁定可以通过使用LOCK命令完成。 它允许指定事务的锁类型和范围。
+
+
+死锁
+
+当两个事务正在等待彼此完成操作时，可能会发生死锁。 虽然PostgreSQL可以检测到它们并使用ROLLBACK结束，但死锁仍然可能不方便。 为了防止您的应用程序遇到此问题，请确保以这样的方式进行设计，以使其以相同的顺序锁定对象。
+
+
+postgresql  权限
+
+
+在数据库中创建对象时，都会为其分配所有者。 所有者通常是执行创建语句的用户。 
+对于大多数类型的对象，初始状态是只有所有者(或超级用户)可以修改或删除对象。 
+要允许其他角色或用户使用它，必须授予权限或权限
+
+
+
+GRANT命令的基本语法如下  (授予权限)
+
+
+GRANT privilege [, ...]
+ON object [, ...]
+TO { PUBLIC | GROUP group | username }
+SQL
+
+privilege值可以是：SELECT，INSERT，UPDATE，DELETE，RULE，ALL。
+object：要向其授予访问权限的对象的名称。 可能的对象是：表，视图，序列
+PUBLIC：表示所有用户的简短形式。
+GROUP group：授予权限的组。
+username：授予权限的用户的名称。
+PUBLIC是表示所有用户的简短形式
+
+
+
+REVOKE命令的基本语法  (撤回权限)
+REVOKE privilege [, ...]
+ON object [, ...]
+FROM { PUBLIC | GROUP groupname | username }
+
+
+privilege值可以是：SELECT，INSERT，UPDATE，DELETE，RULE，ALL。
+object：要向其授予访问权限的对象的名称。 可能的对象是：表，视图，序列
+PUBLIC：表示所有用户的简短形式。
+GROUP group：授予权限的组。
+username：授予权限的用户的名称。
+PUBLIC是表示所有用户的简短形式
+
+
+
+Python  连接到数据库
+
+
+import psycopg2
+
+conn = psycopg2.connect(database="testdb", user="postgres", password="pass123", host="127.0.0.1", port="5432")
+
+print "Opened database successfully"
+
+连接完成后执行增删改查操作
+
+cur = conn.cursor()
+cur.execute('''CREATE TABLE COMPANY
+       (ID INT PRIMARY KEY     NOT NULL,
+       NAME           TEXT    NOT NULL,
+       AGE            INT     NOT NULL,
+       ADDRESS        CHAR(50),
+       SALARY         REAL);''')
+print "Table created successfully"
+
+conn.commit()
+conn.close()....
+
+
+
+
+
+
+
+2  Mysql database
+
+
+
+
+3  redis database
+
+
+
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+
+4 mongoDB database 
+
+
+mongoDB 数据库介绍: 
+
+MongoDB是一个跨平台，面向文档的数据库，提供高性能，高可用性和易于扩展。MongoDB是工作在集合和文档上一种概念。
+
+
+(1)数据库
+数据库是一个集合的物理容器。每个数据库获取其自己设定在文件系统上的文件。一个单一的MongoDB服务器通常有多个数据库。
+
+(2)集合
+集合是一组MongoDB的文件。它与一个RDBMS表是等效的。一个集合存在于数据库中。集合不强制执行模式。集合中的文档可以有不同的字段。通常情况下，在一个集合中的所有文件都是类似或相关目的。
+
+(3)文档
+文档是一组键值对。文档具有动态模式。动态模式是指，在同一个集合的文件不必具有相同一组集合的文档字段或结构，并且相同的字段可以保持不同类型的数据。
+
+
+
+安装 MongoDB (ubuntu)
+
+1 sudo apt-get install mongodb --安装
+
+2 mongo  ---- 登录
+
+3 use database_name  --- 有该数据库就切换到该数据库,没有就新建一个数据库
+
+4 mongo 默认不创建数据库时使用的是mongo_test 数据库
+
+5 db 查看当前数据库 ,  show dbs 查看所有数据库
+
+6 db.dropDatabase()  删除当前数据库
+
+7 db.createCollection('name', 'options') ---填写options相当于创建成闭合的集合
+
+8 db.Collection_name.drop()   --- 删除集合 (先切换到数据库,在看有多少集合,再删除)
+
+9 mongoDB 插入文档  db.collection_name.insert({...})  插入多个文档
+
+  db.collection_name.insertOne({...})  插入单个文档
+  db.collection_name.insertMany({...}) 插入多个文档到集合中
+  
+  tips : 文档之间是由字典分开的, 一个完整的字典相当于一个文档
+
+10 查看文档---先却换到该数据库的该集合下  ---db.collection_name.find() ---查看该集合的全部文档
+
+   db.collection_name.findOne()  --- 查看单个文档一般返回第一个文档
+   db.collection_name.find({condition}) ----  可通过一些筛选条件查看文档
+   例如:
+   db.mycol.find({"likes":{$gte:50}}).pretty()  == where likes >= 50
+
+   and查询 --- db.collection_name.find({ $and:[{key1: value1}, {key2:value2}]}.pretty()
+   也可以2个以上的且条件筛选查询
+
+   or查询 --- db.collection_name.find({ $or:[{key1: value1}, {key2:value2}]}.pretty()
+   也可以2个以上的或条件筛选查询
+
+   and 和 or的结合查询, 例如:例将显示likes大于10以及标题是“MongoDB Overview”或者“yiibai tutorials”的所有文档.
+
+
+   db.mycol.find({"likes": {$gt:10}, $or: [{"by": "yiibai tutorials"},
+    
+                 {"title": "MongoDB     Overview"}]}).pretty()
+	
+
+   嵌套查询 --- 查询文档中嵌套的数据
+   
+   例如: 
+   db.mycollection.find( { size: { h: 14, w: 21, uom: "cm" } } )
+   
+   注意: 整个嵌入式文档中的相等匹配需要精确匹配指定的<value>文档，包括字段顺序
+
+   查询嵌套的单个字段: db.inventory.find( { "size.uom": "in" } )  .作为进阶下一层的表示条件
+
+   查询运算符+嵌入 :  db.inventory.find( { "size.h": { $lt: 15 } } )
+
+   注意: 查询条件find()可以灵活使用
+
+
+
+
+11 更新文档----首先找到该文档---再使用更新功能
+
+   db.mycollecttion.update({'title':'MongoDB Overview'},
+
+	  {$set:{'title':'New Update MongoDB Overview'}})
+
+   默认情况下，MongoDB只会更新一个文档。要更新多个文档，需要将参数’multi‘设置为true 
+
+   db.mycol.update({'title':'MongoDB Overview'},
+   {$set:{'title':'New Update MongoDB Overview'}},{multi:true})
+
+
+   如果update()只是更新文档中的数据, 那么save()方法直接更换整个文档
+   语法:  db.COLLECTION_NAME.save({_id:ObjectId(),NEW_DATA})
+
+
+12 删除文档 
+   
+   db.collection_name.remove({condition}) --- 删除指定条件的文档
+   
+   tips: remove 默认删除满足条件的所有文档, 如果只想删除第一条文档 remove({condition},1)
+
+
+13 投影 :表示选择要显示的字段数据,而不是选择整个文档字段显示
+
+   语法 : db.COLLECTION_NAME.find({},{KEY:1})
+   {KEY:1/0} 将字段列表对应的值设置为1或0。1用于显示字段，而0用于隐藏字段
+
+
+
+14 mongoDB限制记录数:
+
+   db.collection_name.find().limit(number)  --- 限制显示条数, 具体显示多少条有参数number决定
+
+   db.mycol.find({},{"title":1,_id:0}).limit(1).skip(2) 
+   { "title" : "Python Quick Guide" } --- 表示跳过前两条文档,显示第三条文档
+
+   limit(2) ---显示两条文档   skip(2)----跳过两条文档
+
+
+15 mongoDB文档排序:
+
+   安字段排序 1 为升序  -1为降序
+
+   语法: db.COLLECTION_NAME.find().sort({KEY:1})
+
+   例如: 按“_id”降序排序 --- db.mycollection.find({},{"title":1,_id:1}).sort({"_id":-1})
+
+
+
+16 mongoDB索引:
+
+说明:
+
+索引通常能够极大的提高查询的效率，如果没有索引，MongoDB在读取数据时必须扫描集合中的每个文件并选取那些符合查询条件的记录, 这种扫描全集合的查询效率是非常低的，特别在处理大量的数据时，查询可以要花费几十秒甚至几分钟，这对网站的性能是非常致命的
+
+语法:
+
+db.collection.createIndex(keys, options)
+
+语法中 Key 值为你要创建的索引字段，1 为指定按升序创建索引，如果你想按降序来创建索引指定为 -1 即可。
+例如:
+
+db.col.createIndex({"title":1,"description":-1})
+
+
+options 接受参数 链接: https://www.runoob.com/mongodb/mongodb-indexing.html 
+例子: 在后台创建索引
+
+db.values.createIndex({open: 1, close: 1}, {background: true})
+
+
+
+16 聚合函数 ( group by + count)
+
+语法:  db.collection_name.aggregate(aggregate_operation)
+
+例如:
+
+db.article.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : 1}}}])
+
+最终结果:
+
+{ "_id" : "Curry", "num_tutorial" : 1 }
+{ "_id" : "Kuber", "num_tutorial" : 1 }
+{ "_id" : "Maxsu", "num_tutorial" : 2 }
+
+以用户分组,并统计每个用户的个数
+
+聚合表达式列表
+
+$sum  求和 ,$avg 求平均,  $max/min 求最大最小, $push 将值插入到生成的文档中的数组中...等等
+
+
+mongoDB 也支持管道概念
+
+
+每一组输出可作为另一组文档的输入，并生成一组生成的文档(或最终生成的JSON文档在管道的末尾)。这样就可以再次用于下一阶段等等
+
+
+mongoDB管道操作有
+
+$project  $match  $limit  $skip 等等....
+
+例如:
+
+db.articles.aggregate( [
+                        { $match : { score : { $gt : 70, $lte : 90 } } },
+                        { $group: { _id: null, count: { $sum: 1 } } }
+                       ] );
+
+$match用于获取分数大于70小于或等于90记录，然后将符合条件的记录送到下一阶段$group管道操作符进行处理。
+
+
+
+
+17 mongoDB 复制(备份)
+
+   简单来说就是MongoDB复制将数据同步在多个服务器的过程
+
+   mongoDB复制原理 ---通过副本集实现复制 ---- 副本集包含多个节点
+
+   一个副本中必须包含一个主节点还有其他辅助节点, 与用户进行读写互动操作都是主节点在进行, 同时随时更新数据到辅助节点上, 当主节点产生故障时, 下面的辅助节点任意一个都可以变为主节点.从而达到数据不丢失的目的.
+
+   mongoDB 主从配置详见  https://www.jianshu.com/p/675f4712bf3a
+
+
+
+18 mongoDB 分片
+
+1 分片
+作用: 海量数据读写
+
+2 分片架构
+组成: mongos, config server, shard, replica set
+mongos router: 请求入口，是请求分发中心，把数据请求转发到对应share服务器上
+config server: 配置服务器，存储路由、分片的配置。加载时读取这些信息，让mongos准确路由
+shard: 分片。假设一台机器配置1T，分片到4台机器，则每台256G。设置分片规则，则mongos能把请求
+    分发到多个分片机器。
+replica set: 保证每个分片也是副本集，从而保证高可用。
+
+
+
+19 mongoDB 数据备份和恢复
+
+1 数据备份
+
+启动 mongod 服务器 假设您的 mongod 服务器正在本地主机和端口 27017 上运行，请打开命令提示符并转到 mongodb 实例的 bin 目录(如示例安装路径：D:\Program Files\MongoDB\Server\3.4\bin)，然后键入命令：mongodump
+
+
+此时你可能想知道，上面导出的备份文件放到什么地方了？ 默认情况下，MongoDB 会在当前目录下创建一个 dump 目录，并把所有的数据库按数据库名称创建目录。在这个实例中，有两数据库 admin 和 test，那么它将创建两个目录。
+
+
+2 恢复数据
+
+要恢复备份数据，使用MongoDB的 mongorestore 命令。 此命令从备份目录中恢复所有数据。
+
+> mongorestore
+
+
+
+
+20 mongoDB部署
+
+
+mongostat  此命令检查所有运行的mongod实例的状态，并返回数据库操作的计数器。 这些计数器包括插入，查询，更新，删除和游标。 命令还显示遇到页面错误，并显示锁定百分比。这可以用来监控内存不足，写入容量或出现性能问题。
+
+
+mongotop  此命令跟踪并报告基于集合的 MongoDB 实例的读写活动
+
+
+
+
+21 Python 连接mongoDB 详情文档: https://www.yiibai.com/mongodb/mongodb_python.html
+
+
+mongoDB 高级部分
+
+
+1 mongoDB关联关系   文档之间存在各种 1:1 ,1:N , N:N
+
+关系可通过嵌入式 和 引用建模
+
+
+1 比如将address文档嵌入到usr文档中, 但这样随着时间文档会越来越大,难以检索
+
+{
+   "_id": 21000100,
+   "contact": "13800138000",
+   "dob": "1991-11-11",
+   "name": "Maxsu",
+   "address": [
+      {
+         "building": "Hainan Building NO.2100",
+         "pincode": 571100,
+         "city": "Haikou",
+         "province": "Hainan"
+      },
+      {
+         "building": "Sanya Building NO.2100",
+         "pincode": 572200,
+         "city": "Sanya",
+         "province": "Hainan"
+      },
+   ]
+}
+
+
+2 建模引用
+
+
+将用户和地址文档分别开来,使用引用的关系
+例如:
+
+{
+   "_id":ObjectId("52ffc33321332111sdfaf"),
+   "contact": "13800138000",
+   "dob": "1991-11-11",
+   "name": "Maxsu",
+   "address_ids": [
+      ObjectId("123123"),
+      ObjectId("123412")
+   ]
+}
+
+用户文档包含对应地址的ObjectId的数组字段address_ids。 使用这些ObjectIds，我们可以从那里查询地址文件并获取地址详细信息。 使用这种方法，需要两个查询：首先从用户文档获取address_ids字段，然后从地址集中获取这些地址。
+
+>var result = db.users.findOne({"name":"Maxsu"},{"address_ids":1})
+>var addresses = db.address.find({"_id":{"$in":result["address_ids"]}})
+
+
+
+2 mongoDB数据库引用
+
+上面的建模引用是来自同一集合的文档,如果引用来自不同数据库之间的不同集合呢?
+
+这是可以参考mongoDB DBRefs 
+
+
+使用 mongoDB DBRefs 有三个字段必填 
+
+$ref  ---  引用文档来自哪个集合
+
+$id --- 指定该文档的_id
+
+$db  --- 引用文档来自哪个数据库
+
+例如:
+
+{
+   "_id":ObjectId("348362491fjaskdlf2314"),
+   "address": {
+   "$ref": "address_home",
+   "$id": ObjectId("sfaafdf4137832149fssa"),
+   "$db": "yiibai"},
+   "contact": "13800138000",
+   "dob": "1991-12-12",
+   "name": "Maxsu"
+}
+
+
+这里的 DBRef 字段 address指定引用的地址文件位于yiibai数据库中的address_home集合中，
+其ID为sfaafdf4137832149fssa
+
+
+
+
+
+3 mongoDB 查询分析
+
+
+分析查询是衡量数据库和索引设计的有效性的一个非常重要的方式。
+在这里我们将介绍两个经常使用的$explain和$hint查询。
+
+$explain
+db.users.find({gender:"M"},{user_name:1,_id:0}).explain()
+
+
+$hint
+以下查询指定要用于此查询的gender和user_name字段的索引
+
+> db.users.find({gender:"M"},{user_name:1,_id:0}).hint({gender:1,user_name:1})
+
+
+
+
+4 mongoDB原子操作
+
+
+MongoDB不支持多文档原子事务。 但是，它可以为单个文档提供了原子操作。 
+因此，如果文档有一百个字段，则更新语句将更新或不更新所有字段的值，因此在原始级别保持原子性
+
+下面将使用findAndModify命令来执行此功能，因为它会以同样的方式搜索和更新文档。
+
+
+>db.products.findAndModify({ 
+   query:{_id:2,product_available:{$gt:0}}, 
+   update:{ 
+      $inc:{product_available:-1}, 
+      $push:{product_bought_by:{customer:"Curry",date:"2017-08-08"}} 
+   }    
+})
+Shell
+
+嵌入式文档和使用findAndModify查询的方法确保产品购买信息仅在产品可用时才更新。 而整个这个事务在同一个查询中是原子的。
+
+
+
+
+5 mongoDB 高级索引 
+
+
+1 索引数组  
+
+加入有源文档
+
+{
+   "address": {
+      "city": "Haikou",
+      "province": "Hainan",
+      "pincode": "123456"
+   },
+   "tags": [
+      "music",
+      "cricket",
+      "blogs"
+   ],
+   "name": "Maxsu"
+}
+
+
+
+在 tags数组加入索引
+>db.users.ensureIndex({"tags":1}) ---当在tags数组上创建一个索引时，将为其值music，cricket和blogs创建单独的索引。
+
+>db.users.find({tags:"cricket"}) --- 创建索引后，可以搜索这个集合的标签字段
+
+
+2 索引子文档
+
+>db.users.ensureIndex({"address.city":1,"address.state":1,"address.pincode":1})
+
+请记住，查询表达式必须遵循指定的索引的顺序。 所以上面创建的索引将支持以下查询 
+
+>db.users.find({"address.city":"Haikou","address.province":"Hainan"})
+
+
+
+6  索引限制
+
+
+索引额外开销
+每个索引占用一些空间，并导致每次插入，更新和删除的开销。
+因此，如果很少使用集合进行读取操作(大部分是插入或更新操作)，则建议不要使用索引。
+
+
+索引键限制
+
+从MongoDB 2.6版本开始，如果现有索引字段的值超过索引键限制，MongoDB将不会创建索引。
+
+
+插入超过索引键限制的文档
+
+如果本文档的索引字段值超过索引键限制，MongoDB将不会将任何文档插入索引集合。 
+mongorestore和mongoimport工具也是如此。
+
+
+索引最大范围
+集合不能有超过64个索引。
+索引名称的长度不能超过125个字符。
+复合索引最多可以编号31个字段。
+
+
+
+7 mongoDB Objectid 
+
+MongoDB使用ObjectIds作为每个文档的_id字段的默认值，这是在创建任何文档时生成的。 ObjectId的复杂组合使得所有_id字段都是唯一的。
+
+
+>newObjectId = ObjectId()
+上述语句返回以下唯一生成的id --- ObjectId("595b99d9f6a6243715b3c312")
+
+
+创建文档时间戳
+
+> ObjectId("595b99d9f6a6243715b3c312").getTimestamp()
+
+ISODate("2017-07-04T13:36:25Z") 
+
+可以使用getTimestamp方法获取文档的创建时间 
+
+
+8 
+
+MapReduce查询可用于构建大型复杂聚合查询。
+使用自定义JavaScript函数可以使用MapReduce，它非常灵活和强大。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
