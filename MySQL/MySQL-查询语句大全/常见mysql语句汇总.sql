@@ -45,10 +45,10 @@ f 给表添加主键约束--- alter table tb_teacher add  primary key (teaid);  
 
 g 给表添加外键约束 --- alter table tb_teacher add  foreign key (当前表要关联的字段) references tb_college (关联表的主键字段);
 
-h 说明: constraint + 索引名   索引名自己随便命令,用来指向当前添加的约束
+h 说明: constraint + 约束名   索引名自己随便命令,用来指向当前添加的约束
   alter table tb_score add constraint uni_score_sid_cid unique (sid, cid);
 
-  索引名的作用就是删除约束时直接删除索引名
+  约束名的作用就是删除约束时可以直接删除约束名
   alter table tb_score drop index uni_score_sid_cid  --删除 sid cid字段的唯一性约束
 
 
@@ -62,7 +62,7 @@ h 说明: constraint + 索引名   索引名自己随便命令,用来指向当�
 为表创建索引可以加速查询(用空间换时间)
 索引会让增删改变得更慢
 因为增删改操作调整 数据所以可能会导致更新索引
-那个列经常被用于查询的筛选条件，那么就应该在这个列上建立索引
+哪个列经常被用于查询的筛选条件，那么就应该在这个列上建立索引
 主键上有默认的索引(唯一索引)
 如果使用模糊查询，如果查询条件不以%开头，那么索引有效，反之，无效
 
