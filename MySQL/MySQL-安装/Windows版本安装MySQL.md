@@ -1,16 +1,16 @@
 ## windows10系统下安装MySQL5.7步骤
 
-###1、 下载MySQL
+### 1、 下载MySQL
 
 [下载地址](https://dev.mysql.com/downloads/mysql/5.7.html#downloads) ：点击选择要下载的MySQL，下载服务MySQL在这里插入图片描述选择MySQL版本，默认是最新版本，我这里下载5.7版本
 
-###2、 解压并配置环境变量
+### 2 、 解压并配置环境变量
 
 将zip文件解压到硬盘上并配置环境变量找一个目录解压下载好的MySQL包，并把MySQL的bin目录全路径加到系统环境变量path中在这里插入图片描述:
 
 ![avatar](https://img-blog.csdnimg.cn/20190510170023182.png)
 
-###3、 创建my.ini文件
+### 3、 创建my.ini文件
 新下载的MySQL根目录下没有my.ini文件，需要自己创建和配置，如下所示：
 
 my.inin文件位置在这里插入图片描述：
@@ -36,27 +36,27 @@ default-storage-engine=INNODB
 
 
 
-###4、 生成data目录
+### 4、 生成data目录
 
 新下载的MySQL根目录下没有data目录，需要生成。以管理员身份启动命令行工具，进入mysql的bin目录下，执行命令：mysqld --initialize-insecure
 
-###5、 安装MySQL
+### 5、 安装MySQL
 以管理员身份启动命令行工具，进入mysql的bin目录下，执行命令：mysqld install
 
-###6、 开启mysql
+### 6、 开启mysql
 以管理员身份启动命令行工具，执行命令：net start mysql
 
 而关闭mysql同样是以管理员身份启动命令行工具，执行命令：net stop mysql
 
-###7、 进入mysql
+### 7、 进入mysql
 配好环境变量后，可以在任意打开的命令行工具中执行mysql命令，刚安装好的mysql有一个root用户且没有密码。 mysql -u root -p
 
-###8、 重置mysql的root用户密码
+### 8、 重置mysql的root用户密码
 命令：set password for root@localhost = password('123456');
 这样下次登录的时候就需要输入密码了,如下图所示：
 ![avatar](https://img-blog.csdnimg.cn/20190510164625477.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTA5ODI1MDc=,size_16,color_FFFFFF,t_70)
 
-###9、 设置数据库访问权限
+### 9、 设置数据库访问权限
 
 本机数据库如果要允许远程访问，则需要设置权限：
 grant all PRIVILEGES on dbname.* to 'root'@'127.0.0.1' identified by '123456' WITH GRANT OPTION;
