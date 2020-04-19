@@ -73,9 +73,9 @@ NoSql适合存储非结构化数据，比如：文章、评论：
 
 Redis客户端下载地址
 
-GitHub：[ https://github.com/qishibo/AnotherRedisDesktopManager/ ] 
-(https://github.com/qishibo/AnotherRedisDesktopManager/)
 
+GitHub：[https://github.com/qishibo/AnotherRedisDesktopManager/] 
+(https://github.com/qishibo/AnotherRedisDesktopManager/)
 
 GitEE：[https://gitee.com/qishibo/AnotherRedisDesktopManager/releases](https://gitee.com/qishibo/AnotherRedisDesktopManager/releases)
 
